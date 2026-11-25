@@ -36,7 +36,15 @@ class Settings:
     stockage_force: str = field(default_factory=lambda: _env("EDT_STOCKAGE").lower())
     # Frontend compilé (npm run build), servi par le backend s'il existe
     dist_dir: Path = field(default_factory=lambda: Path(_env("EDT_DIST_DIR", str(BACKEND_DIR.parent / "frontend" / "dist"))))
-    cors_origins: tuple[str, ...] = ("http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:4173")
+    # Sites autorisés à appeler l'API : localhost + EDT_CORS_ORIGINS (adresses séparées par des virgules)
+    cors_origins: tuple[str, ...] = field(
+        default_factory=lambda: (
+            "http://localhost:5173",
+            "http://127.0.0.1:5173",
+            "http://localhost:4173",
+            *(o.strip().rstrip("/") for o in _env("EDT_CORS_ORIGINS").split(",") if o.strip()),
+        )
+    )
 
     @property
     def stockage(self) -> str:

@@ -11,13 +11,13 @@ jours, créneaux horaires, classes, séances, élèves (import Excel), évaluati
 
 ## Démarrage rapide
 
-Depuis le dossier `backend/` :
+Depuis le dossier `backend/` (terminal Git Bash ou PowerShell ; dans l'invite `cmd`, remplacez `/` par `\`) :
 
 ```bash
 python -m venv .venv
-.venv\Scripts\python -m pip install -r requirements.txt     # première fois seulement
-copy .env.example .env                                      # puis renseignez MONGODB_URI (facultatif)
-.venv\Scripts\python -m uvicorn app.main:app --reload
+.venv/Scripts/python -m pip install -r requirements.txt     # première fois seulement
+cp .env.example .env                                        # puis renseignez MONGODB_URI (facultatif)
+.venv/Scripts/python -m uvicorn app.main:app --reload
 ```
 
 | Adresse | Contenu |
@@ -39,6 +39,8 @@ Le frontend en développement (`npm run dev`, port 5173) envoie ses appels `/api
 | `EDT_STOCKAGE` | Forcer `mongodb` ou `sqlite` | déduit de `MONGODB_URI` |
 | `EDT_DB_PATH` | Fichier SQLite | `backend/edt.db` |
 | `EDT_DIST_DIR` | Frontend compilé servi par le backend | `../frontend/dist` |
+| `EDT_CORS_ORIGINS` | Sites autorisés à appeler l'API, en plus de localhost (séparés par des virgules) | vide |
+| `PORT` | Port d'écoute, fourni par l'hébergeur (voir « Mise en ligne ») | `8000` |
 
 Les variables d'environnement du système sont prioritaires sur le fichier `.env`.
 
@@ -144,14 +146,39 @@ inscrits sont ignorés (comparaison sans accents ni majuscules). Un ancien `.xls
 
 ---
 
+## Mise en ligne (Render, Railway…)
+
+| Réglage | Valeur |
+|---|---|
+| Dossier racine (*Root Directory*) | `backend` |
+| Commande de build | `pip install -r requirements.txt` |
+| Commande de démarrage | `uvicorn app.main:app --host 0.0.0.0 --port $PORT` (aussi dans `Procfile`) |
+
+`--host 0.0.0.0` est **obligatoire** : sans lui, le serveur n'écoute que sur `localhost` et la plateforme
+répond « no open ports detected on 0.0.0.0 ».
+
+Variables d'environnement à définir sur la plateforme (le fichier `.env` n'est pas envoyé, il est exclu de git) :
+
+| Variable | Valeur |
+|---|---|
+| `MONGODB_URI` | votre adresse MongoDB Atlas |
+| `MONGODB_DB` | `emploi_du_temps` |
+| `EDT_CORS_ORIGINS` | adresse du frontend en ligne, ex. `https://mon-edt.vercel.app` (plusieurs : séparées par des virgules) |
+
+- Dans MongoDB Atlas → *Network Access*, autorisez `0.0.0.0/0` : les adresses IP des hébergeurs changent.
+- N'utilisez pas SQLite en ligne : le disque de ces plateformes est effacé à chaque redémarrage.
+- Frontend hébergé ailleurs : définissez `VITE_API_URL=https://<votre-backend>/api` avant `npm run build`.
+
+---
+
 ## Scripts
 
 Depuis `backend/` :
 
 ```bash
-.venv\Scripts\python -m scripts.exporter sauvegarde.json   # copie de la base en JSON
-.venv\Scripts\python -m scripts.importer sauvegarde.json   # remplace la base (après validation)
-.venv\Scripts\python -m scripts.vider                       # sauvegarde dans sauvegardes/, puis vide la base
+.venv/Scripts/python -m scripts.exporter sauvegarde.json   # copie de la base en JSON
+.venv/Scripts/python -m scripts.importer sauvegarde.json   # remplace la base (après validation)
+.venv/Scripts/python -m scripts.vider                       # sauvegarde dans sauvegardes/, puis vide la base
 ```
 
 Les sauvegardes JSON ont le même format que `GET /api/data` ; les anciennes (sans élèves ni notes) restent importables.
@@ -161,7 +188,7 @@ Les sauvegardes JSON ont le même format que `GET /api/data` ; les anciennes (sa
 ## Tests
 
 ```bash
-.venv\Scripts\python -m pytest -q
+.venv/Scripts/python -m pytest -q
 ```
 
 - `tests/unit/` : entités, cas d'usage (faux dépôts en mémoire) et respect de l'architecture.
