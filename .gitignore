@@ -1,0 +1,12 @@
+# Configuration locale (mot de passe MongoDB) — ne jamais partager
+.env
+
+# Environnement Python et caches
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Données locales
+edt.db
+sauvegardes/
