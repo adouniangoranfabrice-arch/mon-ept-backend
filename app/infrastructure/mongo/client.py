@@ -5,7 +5,9 @@ from pymongo.errors import PyMongoError
 
 
 def creer_client(uri: str) -> MongoClient:
-    return MongoClient(uri, serverSelectionTimeoutMS=5000, tz_aware=False)
+    # minPoolSize : connexions gardées ouvertes (ouvrir une connexion TLS vers Atlas coûte ~0,5 s),
+    # assez pour lire toutes les collections en parallèle (voir emploi_du_temps_repository.charger)
+    return MongoClient(uri, serverSelectionTimeoutMS=5000, tz_aware=False, minPoolSize=8)
 
 
 def verifier_connexion(db: Database) -> None:
